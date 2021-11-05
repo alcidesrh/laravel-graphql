@@ -20,3 +20,5 @@ Liste las rutas con:
 ```
 
 El proyecto no tiene interfaz gráfica. Puede probar los endpoint con Postman o cualquier cliente HTTP.
+
+Todas las rutas están declaradas en route/api.php, hay dos controladores en app/Http/Controllers y los modelos en app/Models. Todo el código está en esos archivos.
