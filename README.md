@@ -2,13 +2,8 @@
 
 
 
-```php
-  use Alcidesrh\Generic\GenericResource;
-
-  $user = User::find(1);
-
-  // It will only return the id and name fields.
-  return new GenericResource( $user, ['id', 'name']);
+```bash
+  php artisan route:list
 ```
 
 This package can help you to return data as a traditional Laravel Resource without making a Resource or ResourceCollection for every single Model.
