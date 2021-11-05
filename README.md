@@ -1,12 +1,17 @@
 ## <p align="center">Prueba Técnica - Programador (Back-end) (LARAVEL)</p>
 
 
+Una vez intalado el proyecto corra el siguiente comando para poblar la base de datos con datos de prueba:
+
+```bash
+  php artisan db:seed
+```
+
+Liste las rutas con:
 
 ```bash
   php artisan route:list
 ```
-
-This package can help you to return data as a traditional Laravel Resource without making a Resource or ResourceCollection for every single Model.
 
 <!-- Sometimes you may need just the id and name fields of an entity: e.g. to list it in an input select.
 
