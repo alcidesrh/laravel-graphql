@@ -1,61 +1,390 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+## <p align="center">Prueba Técnica - Programador (Back-end) (LARAVEL)</p>
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
 
-## About Laravel
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+```php
+  use Alcidesrh\Generic\GenericResource;
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+  $user = User::find(1);
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+  // It will only return the id and name fields.
+  return new GenericResource( $user, ['id', 'name']);
+```
 
-## Learning Laravel
+This package can help you to return data as a traditional Laravel Resource without making a Resource or ResourceCollection for every single Model.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+<!-- Sometimes you may need just the id and name fields of an entity: e.g. to list it in an input select.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Maybe you can use an existing Resource of that entity, but if that Resource returns more that the id and name fields, then
+you are doing data **overfetching** that can slow down the app and it could bring others issues like memory leaks for example.
 
-## Laravel Sponsors
+Another solution is to make a dedicated Resource for that particular case, but as the app grows, you will find yourself making a new
+Resource for every single case, even when you need to fetch some data that doesn't require a complex transformation. -->
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+<!-- `GenericResource` and `GenericResourceColecction` implement a solution to deal with that.   -->
+<br>
 
-### Premium Partners
+ <details open="open">
+  <summary>Table of Contents</summary>
+  <ol>
+    <li><a href="#requirements">Requirements</a></li>
+    <li><a href="#installation">Installation</a></li>
+    <li>
+      <a href="#usage">Usage</a>
+      <ul>
+        <li><a href="#genericresource">GenericResource</a></li>
+        <li><a href="#genericresourcecollection">GenericResourceCollection</a></li>
+        <li><a href="#genericcontroller">GenericController</a>
+    <ul>
+        <li><a href="#route-namespace-and-pagination-configuration">Route namespace and pagination configuration</a></li>
+      </ul>
+    </li>
+      </ul>
+    </li>   
+  </ol>
+</details>
+<br>
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[OP.GG](https://op.gg)**
+## Requirements
 
-## Contributing
+-Laravel >= 5  
+-php >= 7.0
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+<br>
 
-## Code of Conduct
+## Installation
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```sh
+composer require alcidesrh/laravel-generic-resource
+```
 
-## Security Vulnerabilities
+<br>
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Usage
 
-## License
+#### GenericResource
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```php
+  use Alcidesrh\Generic\GenericResource;
+
+  $user = User::find(1);
+
+  //it will only return the id and name fields.
+  return new GenericResource( $user, ['id', 'name']);
+```
+
+<br>
+
+**Working with nested or related models:**
+
+Supose the User class has a parent property of type User class as well, a `belongsTo` relation with itself. And also User class has a `belongsToMany` relation with Product class. So `$user->parent` returns an intance of User class and `$user->products` a collection of intances of Product class.
+
+Let say that with want a list of users with just these fields: id, name, parent (only id and name fields of the parent) and products list (only id, name and price fields of the product). This is how we can get only those data:
+
+```php
+  use Alcidesrh\Generic\GenericResource;
+
+  $user = User::find(1);
+  return new GenericResource( $user, [
+      'id',
+      'name',
+      'parent' => ['id', 'name'],
+      'products' => ['id', 'name', 'price']
+  ]);
+```
+
+<br>
+You can add many nested level as the relations allow:  
+<br>
+<br>
+
+```php
+    ...
+    'products' => [
+        'id',
+        'name',
+        'price',
+        'order' => ['id', 'created_at', 'company' => ['id', 'name']]
+    ]
+```
+
+<br>
+
+**Important:** In order to return nested relations data it is required make the query through the model's Facade.
+
+```php
+    // this will work
+    new GenericResource( User::find(1), ['id', 'name'] );
+
+    // this will work
+    new GenericResource( User::find(1), ['id', 'name', 'parent' => ['id', 'name']] );
+
+    // this will work
+    new GenericResource( DB::table('users')->where('id', 1)->first(), ['id', 'name'] )
+
+    // this won't
+    new GenericResource( DB::table('users')->where('id', 1)->first(), [
+        'id',
+        'name',
+        'parent' => ['id', 'name']
+        // it can not be access the parent property since the object retrieved is an stdClass type
+    ] );
+```
+
+  <br>
+ 
+**Note:**  
+- If the second argument (the array of fields to get) is not supplied, all fields of the model will be returned.  
+- If one of the fields to return doesn't exist in the model, will be omitted in the result array.
+
+<br>
+
+#### GenericResourceCollection
+
+```php
+   use Alcidesrh\Generic\GenericResourceCollection;
+
+   $users = User::where('active', 1);
+   // it will return a collection of user with only the id and name fields.
+   return new GenericResourceCollection( $users->paginate( $perPage ), ['id', 'name']);
+
+   //you can pass nested property as well as in the GenericResource
+   return new GenericResourceCollection( $users->paginate( $perPage ), [
+       'id',
+       'name',
+       'parent' => ['id', 'name'],
+       'products' => ['id', 'name', 'price']
+   ]);
+```
+
+<br>
+
+**Note**: Both `GenericResource` and `GenericResourceCollection` classes were made following the guide line from the official [Laravel's Api Resources documentation](https://laravel.com/docs/8.x/eloquent-resources) with some extra code to make it generic and agnostic. So you can expect the same structure and behavior.
+
+<br>
+
+## GenericController
+
+The main goal of this package is to provide an agnostic `GenericResource` and `GenericResourceCollection`. However this package also provides an
+agnostic `GenericController` which can be used to fetch data that doesn't require a complex query or transformation, and it will return a `GenericResource` or `GenericResourceCollection` only with the fields that were requested or all fields if none was requested.
+
+It can help to prevent overloading the app with routes and controller functions for every small and simple data portion required dynamically in the front-end via ajax.
+
+The `GenericController` has five routes:
+
+```php
+Method: POST /generic/list
+Method: POST /generic/create
+Method: POST /generic/update
+Method: POST /generic/item
+Method: POST /generic/delete
+```
+
+  <br>
+
+### /generic/list get a list. It return a GenericResourceCollection
+
+```js
+axios.post("/generic/list", {
+  // table to query
+  table: "users",
+  // page to return
+  page: 1,
+  // item per page
+  itemsPerPage: 10,
+  // fileds to return
+  fields: ["id", "name", "created_at", "role_id", "email", "company_id"],
+  // where clause: rule is column: value or column: {operator: someoperator, value: somevalue}
+  // operator value should be some of these: '=', '!=', '<', '<=', '>', '>=', '<>', 'like', 'contain'
+  where: {
+    // will generate ( created_at > '2021-03-11 20:26:00.0' )
+    created_at: { operator: ">", value: "2020-09-11 20:26:00.0" },
+    // will generate ( email_verified_at IS NOT NULL )
+    email_verified_at: { operator: "!=", value: null },
+    // when the operator's parameter is omitted the default operator will be '=', will generate ( role_id = 2 )
+    role_id: 2,
+    // the non-existent 'contain' will generate ( email LIKE %legendary% AND email LIKE %zangetsu% )
+    // this example zangetsu.ins@company.com and jhon.legendary.dc@company.com will match
+    email: { operator: "contain", value: ["legendary", "zangetsu"] },
+  },
+  //orWhere clause accept same rules as simple where with one more
+  orWhere: {
+    // you can pass an array as a value, it will generate (role_id = 1 OR role_id = 2)
+    role_id: [1, 2],
+    // will generate (role_id != 1 OR role_id != 2)
+    role_id: { operator: "!=", value: [1, 2] },
+  },
+  whereIn: {
+    // return items with those ids
+    id: [1, 23, 35],
+  },
+  whereNotIn: {
+    // return items with neither of these ids
+    id: [1, 23, 35],
+  },
+  whereBetween: {
+    // return items with price between 25 and 35
+    price: [25, 35],
+  },
+  // return items with price less than 25 and greater than 35
+  whereNotBetween: {
+    id: [25, 35],
+  },
+  // order by id ascendingly of course the value can be DESC
+  orderBy: {
+    id: "ASC",
+  },
+});
+```
+
+<br>
+
+**Note:** It is not posible to ask for nested relations data in the `fields` parameter above due the generic nature of the query. DB Facade is used to make the query, which returns stdClass type.
+
+<br>
+
+### /generic/create create an item. It will return a GenericResource
+
+```js
+axios.post("/generic/create", {
+  table: "roles",
+  // fields to return in the GenericResource once created
+  fields: ["id", "name"],
+  // values: pair column: value
+  values: {
+    name: "Admin",
+    slug: "admin",
+  },
+  // can insert many in one request
+  many: [
+    {
+      name: "User editor",
+      slug: "user-editor",
+    },
+    {
+      name: "Forum admin",
+      slug: "forum-admin",
+    },
+  ],
+});
+```
+
+  <br>
+  
+  ### /generic/update update an item. It will return a GenericResource
+
+```js
+axios
+.post("/generic/update", {
+  table: "roles",
+  // id of the item to update
+  id: 3,
+  // many ids to update many items with the same values in one request.
+  many: [35, 36, 37]
+  // fields to return in the GenericResource once updated
+  fields: ["id", "name"],
+  // values: pair column: value
+  values: {
+    name: "Room Admin",
+    slug: "room-admin",
+  },
+});
+```
+
+  <br>
+  
+  ### /generic/item to get an item. It will return a GenericResource
+
+```js
+axios.post("/generic/delete", {
+  table: "user",
+  // id of the item to delete
+  id: 3,
+  //fields to return in the GenericResource
+  fields: ["id", "name", "slug"],
+});
+```
+
+  <br>
+  
+  ### /generic/delete delete an item  
+  
+  ```js
+  axios
+  .post("/generic/delete", {
+    table: "user",
+    // id of the item to delete
+    id: 3,
+  });
+  ```
+
+  <br>
+
+## Route namespace and pagination configuration
+
+Once installed runing console command ` php artisan vendor:publish` will publish the package's configuration. It can also be done manually copy /vendor/alcidesrh/generic-resource.php to /config  
+<br>
+
+**/config/generic-resource.php**
+
+```php
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Laravel generic Resource package configuration
+    |--------------------------------------------------------------------------
+    |
+     */
+    // configure route and prefix
+    // e.g. to have this route https://yourdomain/agnostic/items for items list
+    // change prefix: agnostic and list_route_name: items
+    'route' => [
+
+        //Route's prefix for generic CRUD(create, read, update and delete) operations
+        //Deafault 'generic' e.g.: axios.post( 'https://yourdomain/generic' )
+        'prefix' => 'generic',
+
+        //Route for list of generic items.
+        //Deafault 'list' e.g. axios.post( 'https://yourdomain/generic/list' )
+        'list_route_name' => 'list',
+
+        //Route to create an item.
+        //Deafault 'create' e.g. axios.post( 'https://yourdomain/generic/create', {table: 'users', values: [ {username: 'whatever', role_id: 1}], field: [id, username] } )
+        'create_route_name' => 'create',
+
+        //Route to update an item.
+        //Deafault 'update'  e.g. axios.post( 'https://yourdomain/generic/update', {table: 'users', id: 1, values: [ {username: 'whatever', role_id: 1}], field: [id, username] } )
+        'update_route_name' => 'update',
+
+        //Route to get an item.
+        //Deafault 'item' e.g. axios.post( 'https://yourdomain/generic/item', {table: 'users', fields: [ {username: 'whatever', role_id: 1}] } )
+        'show_route_name' => 'item',
+
+        //Route to delete a generic item.
+        //Deafault 'delete' e.g. axios.post( 'https://yourdomain/generic/delete', {table: 'users', id: 1} )
+        'delete_route_name' => 'delete',
+    ],
+    // configure pagination items per page and parameters names.
+    'pagination' => [
+
+        //Items per page. Default 20.
+        'itemsPerPage' => 20,
+
+        //Name of the param of the current page e.g. axios.post( 'https://yourdomain/generic/delete', {table: 'users', page: 1} )
+        'name_param_page' => 'page',
+
+        //Name of the param of the number of items per page e.g. axios.post( 'https://yourdomain/generic/list', {table: 'users', page: 1, itemsPerPage: 30} )
+        'name_param_item_per_page' => 'itemsPerPage',
+    ],
+];
+```
+
+<br>
+
+_If you find this package useful please consider star it. Thank you._
+
+### License
+
+This Generic Resource package for Laravel is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT)
